@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rohit Varadaraj, software engineer for ports and shipping</title>
+<meta name="description" content="Software engineer with nearly three years of platform engineering at WiseTech Global and a naval architecture degree from IIT Madras. I build software that predicts ship arrivals and plans berths.">
+<meta name="author" content="Rohit Varadaraj">
+<link rel="canonical" href="https://rohit-v-raj.github.io/">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Rohit Varadaraj">
+<meta property="og:title" content="Rohit Varadaraj, software engineer for ports and shipping">
+<meta property="og:description" content="Platform engineer at WiseTech Global, naval architect from IIT Madras. Featured: an AIS based ship arrival model and a berth planning API for Just In Time arrival.">
+<meta property="og:url" content="https://rohit-v-raj.github.io/">
+<meta property="og:image" content="https://rohit-v-raj.github.io/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Rohit Varadaraj, software engineer for ports and shipping, beside a schematic chart of a ship approaching its berth">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F6F9FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1A2A" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Rohit Varadaraj",
+  "alternateName": "Rohit V Raj",
+  "jobTitle": "Software Engineer",
+  "url": "https://rohit-v-raj.github.io/",
+  "email": "mailto:rohitvraj11@gmail.com",
+  "address": {"@type": "PostalAddress", "addressLocality": "Bengaluru", "addressCountry": "IN"},
+  "alumniOf": [
+    {"@type": "CollegeOrUniversity", "name": "Indian Institute of Technology Madras"},
+    {"@type": "CollegeOrUniversity", "name": "Instituto Superior Técnico"}
+  ],
+  "sameAs": ["https://www.linkedin.com/in/rohit-v-raj/", "https://github.com/Rohit-v-raj"],
+  "knowsAbout": ["Platform engineering", "Java", "Spring Boot", "Kubernetes", "AIS data", "Vessel ETA prediction", "Berth planning", "Just In Time arrival"]
+}
+</script>
+<script>
+  try { var t = localStorage.getItem("theme"); if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
+<style>
+@font-face { font-family: "Schibsted Grotesk"; src: url("assets/fonts/schibsted-grotesk-latin-wght-normal.woff2") format("woff2"); font-weight: 400 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("assets/fonts/schibsted-grotesk-latin-wght-italic.woff2") format("woff2"); font-weight: 400 900; font-style: italic; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url("assets/fonts/newsreader-latin-400-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+
+/* Day palette: a paper nautical chart. Night palette: a chart plotter at night. */
+:root {
+  --paper: #F6F9FA;
+  --surface: #FFFFFF;
+  --water: #FBFDFE;
+  --shallow: #D7E9F2;
+  --land: #ECE3CB;
+  --coast: #6B5F45;
+  --ink: #13304E;
+  --ink-2: #435B71;
+  --ink-3: #5C7387;
+  --line: #D3DEE6;
+  --contour: #86A9C0;
+  --sea-label: #48708E;
+  --accent: #B0176C;
+  --accent-soft: #F7E3EE;
+  --bar-base: #2F7FBF;
+  --bar-model: #B0176C;
+  --shadow: 0 1px 2px rgba(19, 48, 78, .06), 0 8px 24px rgba(19, 48, 78, .06);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0B1A2A; --surface: #10233A; --water: #0D2033; --shallow: #12314B; --land: #1E2D39; --coast: #8C9BA7;
+    --ink: #DCE7EF; --ink-2: #A9BBCA; --ink-3: #8DA2B4; --line: #22394F; --contour: #2E5677; --sea-label: #7FA6C3;
+    --accent: #EE73B1; --accent-soft: #3A1A31; --bar-base: #3E8FD6; --bar-model: #E0569F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0B1A2A; --surface: #10233A; --water: #0D2033; --shallow: #12314B; --land: #1E2D39; --coast: #8C9BA7;
+  --ink: #DCE7EF; --ink-2: #A9BBCA; --ink-3: #8DA2B4; --line: #22394F; --contour: #2E5677; --sea-label: #7FA6C3;
+  --accent: #EE73B1; --accent-soft: #3A1A31; --bar-base: #3E8FD6; --bar-model: #E0569F;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 5rem; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Schibsted Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-feature-settings: "kern", "liga";
+  text-rendering: optimizeLegibility;
+}
+img, svg { display: block; max-width: 100%; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: inherit; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: .22em; }
+a:hover { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 2.5rem); }
+.skip { position: absolute; left: 1rem; top: -4rem; background: var(--ink); color: var(--paper); padding: .6rem 1rem; border-radius: 6px; z-index: 10; }
+.skip:focus { top: 1rem; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.header-inner { display: flex; align-items: center; gap: 2rem; min-height: 4rem; }
+.wordmark { font-weight: 700; font-size: 1.0625rem; letter-spacing: -0.01em; text-decoration: none; }
+.site-nav { display: flex; gap: 1.75rem; margin-left: auto; font-size: .9375rem; }
+.site-nav a { text-decoration: none; color: var(--ink-2); }
+.site-nav a:hover { color: var(--accent); }
+.theme-toggle { display: inline-flex; align-items: center; gap: .45rem; font: inherit; font-size: .875rem; color: var(--ink-2); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: .35rem .8rem .35rem .6rem; cursor: pointer; }
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink-3); }
+.theme-toggle svg { width: 1rem; height: 1rem; }
+
+/* Buttons */
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.875rem; padding: .7rem 1.2rem; border-radius: 6px; border: 1.5px solid var(--ink); font-weight: 600; font-size: .9875rem; text-decoration: none; color: var(--ink); background: transparent; transition: background-color .15s ease, color .15s ease, border-color .15s ease; }
+.btn:hover { color: var(--accent); border-color: var(--accent); }
+.btn-primary { background: var(--ink); color: var(--paper); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn svg { width: 1.05rem; height: 1.05rem; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 13fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3.5rem, 7vw, 6rem); }
+.hero h1 { font-size: clamp(2.2rem, 1.4rem + 2.2vw, 3.15rem); line-height: 1.06; letter-spacing: -0.028em; font-weight: 720; text-wrap: balance; }
+.hero .lede { margin-top: 1.5rem; font-size: 1.1875rem; line-height: 1.58; color: var(--ink-2); max-width: 34em; }
+.hero .actions { margin-top: 2rem; }
+.profile-links { display: flex; gap: 1.5rem; margin-top: 1.5rem; font-size: .9375rem; }
+.profile-links a { display: inline-flex; align-items: center; gap: .45rem; color: var(--ink-2); text-decoration: none; }
+.profile-links a:hover { color: var(--accent); }
+.profile-links svg { width: 1.1rem; height: 1.1rem; }
+.status { display: flex; align-items: center; gap: .6rem; margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid var(--line); font-size: .9375rem; color: var(--ink-2); }
+.status::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); flex: none; }
+
+/* The chart plotter */
+.plotter { margin: 0; }
+.chart-frame { position: relative; background: var(--water); border-radius: 4px; box-shadow: var(--shadow); }
+.chart-frame svg { width: 100%; height: auto; }
+.water { fill: var(--water); }
+.contour-dash { fill: var(--contour); stroke: var(--contour); stroke-width: 52; stroke-dasharray: 2 6; stroke-linejoin: round; }
+.contour-cover { fill: var(--water); stroke: var(--water); stroke-width: 50; stroke-linejoin: round; }
+.contour-line { fill: var(--contour); stroke: var(--contour); stroke-width: 26; stroke-linejoin: round; }
+.shallow { fill: var(--shallow); stroke: var(--shallow); stroke-width: 24.5; stroke-linejoin: round; }
+.shallow-rock { fill: var(--shallow); stroke: var(--shallow); stroke-width: 9; stroke-linejoin: round; }
+.land { fill: var(--land); stroke: var(--coast); stroke-width: 1.3; stroke-linejoin: round; }
+.sea-label { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 15px; fill: var(--sea-label); letter-spacing: .02em; }
+.sounding { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 11px; fill: var(--sea-label); }
+.land-label { font-family: "Schibsted Grotesk", system-ui, sans-serif; font-size: 12px; font-weight: 600; fill: var(--ink); }
+.track { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 6 5; stroke-linecap: round; }
+.ping { fill: var(--ink); }
+.quay { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+.berth-ring { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.berth-dot { fill: var(--accent); }
+.ship { fill: var(--ink); stroke: var(--water); stroke-width: 1.5; stroke-linejoin: round; }
+.compass circle { fill: none; stroke: var(--accent); stroke-width: .9; }
+.compass path { fill: var(--accent); }
+.compass line { stroke: var(--accent); stroke-width: .9; }
+.compass text { font-family: "Schibsted Grotesk", system-ui, sans-serif; font-size: 10px; font-weight: 700; fill: var(--accent); }
+.neat-outer, .neat-inner { fill: none; stroke: var(--ink); stroke-width: 1; }
+.neat-tick { fill: var(--ink); }
+.readout { position: absolute; top: 6.5%; right: 5.2%; width: min(44%, 15rem); background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: .8rem .95rem .85rem; font-size: .8125rem; line-height: 1.35; box-shadow: var(--shadow); }
+.readout-title { display: flex; align-items: center; gap: .5rem; font-weight: 650; font-size: .875rem; margin-bottom: .55rem; }
+.readout-title::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); flex: none; }
+.readout[data-state="moored"] .readout-title::before { background: var(--ink); }
+.readout dl { display: grid; grid-template-columns: 1fr auto; row-gap: .3rem; column-gap: .75rem; }
+.readout dt { color: var(--ink-2); }
+.readout dd { font-weight: 650; text-align: right; }
+.replay { position: absolute; right: 5.2%; bottom: 6.5%; font: inherit; font-size: .8125rem; font-weight: 600; color: var(--ink); background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: .4rem .85rem .4rem .7rem; display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; box-shadow: var(--shadow); }
+.replay:hover { color: var(--accent); border-color: var(--accent); }
+.replay svg { width: .9rem; height: .9rem; }
+.replay[hidden] { display: none; }
+.plotter figcaption { margin-top: .9rem; font-size: .875rem; color: var(--ink-2); max-width: 46em; }
+
+/* Sections */
+.section { padding-block: clamp(4rem, 8vw, 6.5rem); }
+.section h2 { font-size: clamp(1.85rem, 1.3rem + 1.5vw, 2.6rem); line-height: 1.1; letter-spacing: -0.022em; font-weight: 720; text-wrap: balance; }
+.section h3 { font-size: 1.1875rem; line-height: 1.3; letter-spacing: -0.01em; font-weight: 650; }
+.split { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+.split > h2 { position: sticky; top: 6rem; }
+.prose { max-width: 40rem; }
+.prose p + p { margin-top: 1rem; }
+.muted { color: var(--ink-2); }
+
+/* Project */
+.project, .band { background: var(--surface); border-block: 1px solid var(--line); }
+.project-head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: end; }
+.project-head .lede { margin-top: 1.25rem; font-size: 1.1875rem; line-height: 1.58; color: var(--ink-2); max-width: 36em; }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+.chips li { font-size: .8125rem; font-weight: 550; padding: .3rem .7rem; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); color: var(--ink-2); }
+.why { border-left: 3px solid var(--accent); padding: .25rem 0 .25rem 1.25rem; }
+.why p { font-size: 1rem; color: var(--ink-2); }
+.why p strong { color: var(--ink); font-weight: 650; }
+.why .actions { margin-top: 1.5rem; }
+.subhead { margin-top: clamp(3.5rem, 7vw, 5rem); margin-bottom: 1.75rem; display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.subhead p { color: var(--ink-2); font-size: .9375rem; max-width: 34em; }
+
+/* Waypoints: the pipeline is a real sequence, so it is numbered like waypoints on a route */
+.waypoints { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.25rem; counter-reset: wp; }
+.waypoints::before { content: ""; position: absolute; top: 1.1rem; left: 1.1rem; right: 1.1rem; border-top: 2px dashed var(--accent); opacity: .7; }
+.waypoints li { position: relative; counter-increment: wp; }
+.waypoints li::before { content: counter(wp); position: relative; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); color: var(--accent); font-weight: 700; font-size: .9375rem; margin-bottom: 1rem; font-variant-numeric: tabular-nums; }
+.waypoints h3 { font-size: 1rem; margin-bottom: .35rem; }
+.waypoints p { font-size: .9375rem; line-height: 1.5; color: var(--ink-2); }
+
+/* Charts */
+.results { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(1.5rem, 4vw, 3rem); }
+.chart { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: clamp(1.25rem, 3vw, 1.75rem); }
+.chart h3 { font-size: 1.0625rem; }
+.chart .chart-sub { margin-top: .25rem; font-size: .875rem; color: var(--ink-2); }
+.bars { margin-top: 1.5rem; display: grid; gap: 1.25rem; }
+.bar-group-title { font-size: .875rem; font-weight: 650; margin-bottom: .55rem; }
+.bar-row { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); align-items: center; gap: .75rem; font-size: .875rem; }
+.bar-row + .bar-row { margin-top: .4rem; }
+.bar-label { color: var(--ink-2); }
+.bar-track { position: relative; height: 1.5rem; display: flex; align-items: center; gap: .5rem; }
+.bar { height: 100%; border-radius: 0 4px 4px 0; min-width: 4px; }
+.bar.base { background: var(--bar-base); }
+.bar.model { background: var(--bar-model); }
+.bar-value { font-weight: 650; white-space: nowrap; }
+.chart-note { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .875rem; color: var(--ink-2); }
+.cols { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; align-items: end; height: 12.5rem; border-bottom: 1px solid var(--ink-3); background-image: linear-gradient(to top, var(--line) 1px, transparent 1px); background-size: 100% 25%; }
+.col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.col .bar-value { font-size: .875rem; margin-bottom: .35rem; }
+.col-bar { width: min(3.25rem, 70%); background: var(--bar-model); border-radius: 4px 4px 0 0; }
+.col-labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-top: .5rem; font-size: .8125rem; color: var(--ink-2); text-align: center; }
+.axis-title { margin-top: .35rem; font-size: .8125rem; color: var(--ink-2); text-align: center; }
+
+/* Decisions */
+.decisions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.25rem clamp(1.5rem, 3vw, 2.5rem); }
+.decisions li { padding-top: 1rem; border-top: 2px solid var(--ink); }
+.decisions h3 { font-size: 1.0625rem; margin-bottom: .45rem; }
+.decisions p { font-size: .9375rem; line-height: 1.55; color: var(--ink-2); }
+
+/* Experience */
+.timeline { position: relative; display: grid; gap: 3rem; }
+.role { position: relative; padding-left: 2rem; }
+.role::before { content: ""; position: absolute; left: .3rem; top: .55rem; bottom: -3rem; width: 2px; background: var(--line); }
+.role:last-child::before { bottom: 0; }
+.role::after { content: ""; position: absolute; left: 0; top: .4rem; width: .8rem; height: .8rem; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); }
+.role-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .25rem 1.5rem; }
+.role-dates { font-size: .9375rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.role-titles { margin-top: .5rem; display: grid; gap: .15rem; font-size: .9375rem; color: var(--ink-2); }
+.role-titles strong { color: var(--ink); font-weight: 600; }
+.highlights { margin-top: 1.1rem; display: grid; gap: .7rem; }
+.highlights li { position: relative; padding-left: 1.1rem; max-width: 42rem; }
+.highlights li::before { content: ""; position: absolute; left: 0; top: .72em; width: .4rem; height: 2px; background: var(--accent); }
+.highlights strong { font-weight: 650; }
+
+/* Other work, education, skills */
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem clamp(1.5rem, 4vw, 3rem); }
+.pair h3 { margin-bottom: .2rem; }
+.pair .meta { font-size: .9375rem; color: var(--ink-2); margin-bottom: .6rem; }
+.pair p:not(.meta) { font-size: .9875rem; color: var(--ink-2); }
+.skills { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: .9rem 1.5rem; }
+.skills dt { font-weight: 650; }
+.skills dd { color: var(--ink-2); }
+.stack-gap { margin-top: clamp(3rem, 6vw, 4.5rem); }
+.pair-title { font-size: .9375rem; font-weight: 650; color: var(--ink-2); margin-bottom: 1.25rem; padding-bottom: .6rem; border-bottom: 1px solid var(--line); }
+
+/* Contact */
+.contact { background: var(--ink); color: var(--paper); }
+.contact h2 { color: var(--paper); }
+.contact p { color: color-mix(in srgb, var(--paper) 80%, var(--ink)); max-width: 36em; margin-top: 1rem; font-size: 1.0625rem; }
+.email { display: inline-block; margin-top: 2rem; font-size: clamp(1.5rem, 1rem + 2.2vw, 2.6rem); font-weight: 680; letter-spacing: -0.02em; color: var(--paper); text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: .2em; overflow-wrap: anywhere; }
+.email:hover { color: var(--accent-soft); }
+.contact .profile-links a { color: color-mix(in srgb, var(--paper) 80%, var(--ink)); }
+.contact .profile-links a:hover { color: var(--paper); }
+.contact :focus-visible { outline-color: var(--paper); }
+:root[data-theme="dark"] .contact { background: var(--surface); color: var(--ink); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .contact { background: var(--surface); } }
+.site-footer { padding-block: 2rem; font-size: .875rem; color: var(--ink-2); }
+.footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 2rem; }
+
+/* Responsive */
+@media (max-width: 1080px) {
+  .waypoints { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .waypoints::before { display: none; }
+  .waypoints li:not(:last-child)::after { content: ""; position: absolute; left: calc(1.1rem - 1px); top: 2.2rem; bottom: -1.5rem; border-left: 2px dashed var(--accent); opacity: .7; }
+  .waypoints li { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); column-gap: 1rem; }
+  .waypoints li::before { margin-bottom: 0; grid-row: span 2; }
+  .waypoints h3 { margin-top: .3rem; }
+  .decisions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 960px) {
+  .hero { grid-template-columns: minmax(0, 1fr); }
+  .project-head, .results, .split { grid-template-columns: minmax(0, 1fr); }
+  .split > h2 { position: static; }
+}
+@media (max-width: 720px) {
+  .site-nav { display: none; }
+  .theme-toggle { margin-left: auto; }
+  .readout { position: static; width: auto; margin: .75rem 0 0; box-shadow: none; }
+  .chart-frame { background: transparent; box-shadow: none; }
+  .chart-frame svg { box-shadow: var(--shadow); border-radius: 4px; background: var(--water); }
+  .replay { bottom: auto; top: .75rem; left: .75rem; right: auto; }
+  .decisions, .pair { grid-template-columns: minmax(0, 1fr); }
+  .skills { grid-template-columns: minmax(0, 1fr); gap: .15rem; }
+  .skills dd + dt { margin-top: .9rem; }
+  .bar-row { grid-template-columns: minmax(0, 1fr); gap: .25rem; }
+  .cols { height: 10rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .btn { transition: none; }
+}
+@media print {
+  .site-header, .replay, .theme-toggle { display: none; }
+  .contact { background: none; color: #000; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="wordmark" href="#top">Rohit Varadaraj</a>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#project">Project</a>
+      <a href="#experience">Experience</a>
+      <a href="#education">Education</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="theme-toggle" type="button" aria-pressed="false">
+      <svg class="icon-night" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+      <span class="theme-label">Night chart</span>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero wrap" id="top" aria-labelledby="hero-title">
+  <div class="hero-text">
+    <h1 id="hero-title">Ships race to port, then wait at anchor. I&nbsp;build software that tells them when to arrive.</h1>
+    <p class="lede">I am a software engineer with nearly three years of platform engineering at WiseTech Global, and a naval architect by training from IIT Madras. My work sits where the two meet: predicting ship arrivals, planning berths, and the reliable infrastructure underneath.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="#project">See the project</a>
+      <a class="btn" href="mailto:rohitvraj11@gmail.com">Email me</a>
+    </div>
+    <ul class="profile-links">
+      <li><a href="https://github.com/Rohit-v-raj"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>GitHub</a></li>
+      <li><a href="https://www.linkedin.com/in/rohit-v-raj/"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>LinkedIn</a></li>
+    </ul>
+    <p class="status">Available now. Based in Bengaluru and open to relocating.</p>
+  </div>
+
+  <figure class="plotter">
+    <div class="chart-frame">
+<svg viewBox="0 0 640 520" role="img" aria-labelledby="chart-title chart-desc">
+      <title id="chart-title">Schematic chart of a ship approaching its berth</title>
+      <desc id="chart-desc">A ship follows a dashed planned track between islands into a harbour basin, leaving a trail of position reports, while a panel shows its distance to the berth, its speed and its predicted arrival time.</desc>
+      <defs><path id="mainland" d="M 502.5 -10.6 C 502.4 -8.9 502.3 -3.6 502.0 -0.3 C 501.6 3.1 500.6 6.2 500.4 9.4 C 500.2 12.7 500.5 15.9 500.8 19.0 C 501.0 22.2 501.8 25.2 502.1 28.3 C 502.4 31.4 502.1 34.6 502.6 37.6 C 503.1 40.6 503.9 43.5 505.1 46.2 C 506.2 49.0 508.3 51.4 509.7 54.1 C 511.0 56.8 512.1 59.5 513.0 62.2 C 513.8 65.0 514.3 67.8 514.9 70.7 C 515.5 73.6 516.4 76.5 516.6 79.5 C 516.7 82.5 516.7 85.9 515.7 88.8 C 514.7 91.8 512.3 94.7 510.7 97.2 C 509.0 99.8 507.3 101.9 505.7 104.1 C 504.2 106.4 502.9 108.7 501.3 110.8 C 499.7 112.9 497.9 114.8 496.1 116.6 C 494.3 118.4 492.1 119.7 490.3 121.5 C 488.6 123.2 486.9 125.0 485.4 126.9 C 483.9 128.8 482.7 131.0 481.4 132.9 C 480.0 134.7 478.6 136.4 477.0 137.9 C 475.5 139.5 473.7 140.6 472.1 142.2 C 470.5 143.7 468.8 145.2 467.5 147.1 C 466.3 149.0 465.4 151.1 464.5 153.5 C 463.6 155.8 463.0 158.3 462.2 161.1 C 461.5 164.0 460.2 167.5 460.1 170.7 C 460.0 173.8 460.5 177.3 461.6 180.1 C 462.6 183.0 464.8 185.3 466.5 187.7 C 468.2 190.0 470.0 192.2 471.7 194.3 C 473.4 196.5 475.0 198.7 476.8 200.7 C 478.7 202.6 480.9 204.2 483.0 205.8 C 485.0 207.5 487.3 208.8 489.2 210.6 C 491.0 212.4 492.5 214.5 493.9 216.6 C 495.3 218.6 496.3 220.9 497.5 222.9 C 498.8 224.9 500.2 226.6 501.5 228.4 C 502.8 230.2 504.4 231.8 505.5 233.8 C 506.7 235.7 507.6 237.9 508.2 240.2 C 508.8 242.6 509.1 245.9 509.3 247.9 C 509.6 249.9 509.6 250.9 509.8 252.3 C 509.9 253.8 510.2 255.1 510.3 256.5 C 510.5 257.8 510.6 259.1 510.7 260.4 C 510.8 261.6 510.8 262.8 510.7 263.9 C 510.6 264.9 510.5 266.0 510.3 266.9 C 510.2 267.8 510.0 268.7 509.8 269.4 C 509.6 270.2 509.3 270.9 509.1 271.5 C 508.9 272.2 508.7 272.7 508.6 273.3 C 508.4 273.9 508.3 274.4 508.2 274.9 C 508.2 275.4 508.1 275.9 508.2 276.4 C 508.2 276.9 508.3 277.5 508.4 278.1 C 508.6 278.7 508.8 279.2 509.2 279.9 C 509.6 280.5 510.2 281.2 510.9 281.8 C 511.6 282.4 512.4 282.9 513.3 283.4 C 514.2 284.0 515.2 284.5 516.3 285.1 C 517.4 285.7 518.6 286.4 519.8 287.1 C 521.1 287.7 522.4 288.6 523.8 289.3 C 525.2 290.0 526.7 290.7 528.2 291.3 C 529.8 291.8 531.4 292.2 533.0 292.6 C 534.7 292.9 536.4 293.0 538.2 293.2 C 539.9 293.4 541.7 293.5 543.4 294.0 C 545.2 294.4 546.9 295.0 548.5 295.8 C 550.2 296.5 551.7 297.6 553.2 298.7 C 554.6 299.9 556.0 301.2 557.3 302.5 C 558.6 303.9 559.9 305.3 561.0 306.8 C 562.2 308.3 563.4 309.9 564.2 311.6 C 565.1 313.3 565.8 315.2 566.1 317.2 C 566.5 319.1 566.4 321.2 566.2 323.2 C 566.0 325.2 565.3 327.3 564.9 329.2 C 564.5 331.1 564.0 332.9 563.7 334.7 C 563.4 336.6 563.3 338.3 563.1 340.0 C 562.9 341.8 562.7 343.5 562.4 345.2 C 562.0 346.8 561.4 348.4 560.8 349.9 C 560.1 351.3 559.3 352.6 558.5 353.9 C 557.7 355.2 556.6 355.9 556.2 357.6 C 555.8 359.2 556.9 362.4 556.0 364.0 C 555.1 365.6 552.6 366.2 550.8 367.1 C 549.0 368.0 547.1 368.7 545.1 369.4 C 543.2 370.0 541.2 370.6 539.2 371.1 C 537.2 371.6 535.2 371.9 533.1 372.3 C 531.1 372.7 529.0 372.9 526.9 373.2 C 524.9 373.5 522.8 373.7 520.8 374.0 C 518.7 374.3 516.7 374.5 514.7 374.8 C 512.7 375.1 510.8 375.3 508.9 375.7 C 507.0 376.1 505.2 376.4 503.4 376.9 C 501.7 377.4 500.0 378.0 498.4 378.6 C 496.8 379.3 495.3 380.0 493.9 380.9 C 492.5 381.8 491.2 382.9 490.0 384.0 C 488.8 385.1 487.7 386.4 486.7 387.7 C 485.6 388.9 484.6 390.3 483.7 391.6 C 482.8 393.0 482.0 394.5 481.2 395.9 C 480.5 397.4 479.8 398.9 479.2 400.5 C 478.6 402.1 478.1 403.7 477.7 405.4 C 477.3 407.0 477.0 408.8 476.8 410.5 C 476.5 412.2 476.4 414.0 476.4 415.9 C 476.5 417.7 476.6 419.6 476.8 421.5 C 477.1 423.4 477.4 425.3 477.9 427.3 C 478.4 429.3 479.0 431.3 479.8 433.4 C 480.5 435.4 481.4 437.5 482.5 439.6 C 483.5 441.7 484.9 443.9 486.0 446.0 C 487.1 448.1 488.1 450.0 488.9 452.1 C 489.6 454.2 490.2 456.3 490.5 458.5 C 490.9 460.6 491.1 462.8 491.2 465.0 C 491.3 467.2 491.2 469.5 491.0 471.8 C 490.9 474.1 490.5 476.4 490.2 478.7 C 489.8 481.0 489.3 483.4 488.8 485.8 C 488.2 488.1 487.6 490.5 487.0 492.9 C 486.3 495.3 485.6 497.8 485.0 500.2 C 484.3 502.7 483.6 505.1 482.9 507.6 C 482.2 510.1 481.6 512.5 481.0 515.0 C 480.3 517.5 479.8 520.0 479.3 522.5 C 478.8 525.0 478.2 528.8 478.0 530.0 L 660 530 L 660 -10 Z"/><path id="isle-a" d="M 268.8 119.7 C 269.7 116.8 269.4 111.5 271.1 108.2 C 272.9 105.0 276.4 102.7 279.4 100.2 C 282.3 97.8 285.3 95.1 288.9 93.6 C 292.4 92.0 296.8 92.1 300.7 91.0 C 304.6 89.9 308.3 88.0 312.4 87.0 C 316.5 86.0 320.8 84.9 325.0 85.0 C 329.3 85.0 333.7 86.3 337.8 87.4 C 341.9 88.5 346.0 89.8 349.8 91.5 C 353.5 93.1 356.6 95.9 360.2 97.3 C 363.7 98.6 367.8 98.3 371.0 99.7 C 374.3 101.1 376.9 103.5 379.5 105.6 C 382.1 107.6 384.6 109.6 386.6 111.8 C 388.7 114.0 390.8 116.3 392.0 118.9 C 393.3 121.4 393.3 124.4 394.2 127.0 C 395.1 129.5 396.1 131.7 397.3 134.1 C 398.4 136.5 400.2 139.0 400.9 141.6 C 401.6 144.3 401.6 147.1 401.4 149.9 C 401.2 152.7 400.5 155.5 399.7 158.4 C 398.9 161.2 398.3 164.5 396.7 167.1 C 395.0 169.6 392.4 171.8 389.7 173.8 C 386.9 175.8 383.1 177.1 380.1 179.0 C 377.1 181.0 374.7 183.9 371.6 185.6 C 368.5 187.3 364.9 188.1 361.4 189.0 C 357.9 190.0 354.4 190.9 350.8 191.2 C 347.2 191.5 343.5 191.7 340.0 190.9 C 336.4 190.0 333.1 187.2 329.7 186.1 C 326.3 184.9 323.0 184.7 319.7 184.0 C 316.4 183.2 313.2 182.4 310.1 181.4 C 307.0 180.4 304.1 179.0 301.1 178.0 C 298.2 176.9 294.8 176.6 292.4 175.3 C 290.0 173.9 288.2 171.9 286.6 170.0 C 284.9 168.0 284.0 165.6 282.7 163.7 C 281.4 161.9 280.0 160.4 278.6 158.9 C 277.2 157.3 275.6 156.1 274.4 154.5 C 273.2 152.9 272.2 151.1 271.4 149.4 C 270.6 147.6 270.1 145.8 269.5 143.9 C 268.8 142.1 268.0 140.2 267.3 138.2 C 266.6 136.3 265.6 134.1 265.3 132.0 C 265.0 129.8 265.0 127.5 265.6 125.4 C 266.2 123.4 267.9 122.5 268.8 119.7 Z"/><path id="isle-b" d="M 300.6 330.4 C 302.2 328.4 303.8 323.8 306.1 320.9 C 308.3 318.0 311.0 315.1 314.0 312.9 C 317.0 310.7 320.5 308.9 324.1 307.7 C 327.7 306.6 331.8 306.9 335.6 306.1 C 339.3 305.3 342.8 303.8 346.6 303.1 C 350.4 302.4 354.2 302.2 358.1 302.0 C 362.0 301.8 366.0 301.1 369.8 301.7 C 373.5 302.4 377.2 304.1 380.4 306.0 C 383.6 307.8 386.4 310.6 389.2 312.8 C 391.9 314.9 395.0 316.9 397.1 319.0 C 399.3 321.1 400.5 323.2 402.1 325.3 C 403.6 327.4 405.1 329.3 406.4 331.4 C 407.7 333.6 409.2 335.9 409.7 338.3 C 410.1 340.8 409.9 343.5 409.4 346.0 C 408.9 348.4 407.6 350.8 406.6 353.1 C 405.5 355.4 404.6 357.7 403.2 359.8 C 401.9 362.0 400.2 364.0 398.5 366.0 C 396.8 367.9 394.8 369.5 393.0 371.6 C 391.2 373.7 389.8 376.4 387.7 378.6 C 385.5 380.7 382.9 383.1 380.2 384.5 C 377.5 385.9 374.5 386.4 371.6 387.2 C 368.7 388.0 365.7 388.9 362.8 389.2 C 359.8 389.5 356.8 389.2 353.8 389.0 C 350.9 388.8 348.1 388.1 345.1 388.1 C 342.2 388.1 339.2 388.8 336.3 388.8 C 333.3 388.8 330.2 388.8 327.4 388.2 C 324.6 387.6 321.9 386.4 319.2 385.3 C 316.6 384.2 313.8 383.1 311.5 381.5 C 309.2 379.9 307.1 377.9 305.4 375.7 C 303.8 373.5 302.6 370.4 301.5 368.4 C 300.4 366.3 299.8 364.8 299.0 363.3 C 298.1 361.7 297.2 360.4 296.4 359.1 C 295.6 357.7 294.9 356.4 294.3 355.1 C 293.8 353.8 293.4 352.5 293.2 351.3 C 292.9 350.0 292.9 348.7 292.9 347.5 C 292.9 346.3 293.0 345.1 293.2 343.8 C 293.3 342.6 293.6 341.5 293.9 340.2 C 294.2 339.0 294.5 337.8 295.0 336.6 C 295.4 335.3 295.6 333.8 296.5 332.8 C 297.5 331.8 299.1 332.4 300.6 330.4 Z"/><path id="isle-c" d="M 149.3 249.6 C 149.5 247.5 151.5 245.5 153.1 243.9 C 154.7 242.4 156.9 241.6 158.8 240.2 C 160.7 238.8 162.4 237.0 164.4 235.7 C 166.5 234.4 168.9 233.0 171.2 232.6 C 173.6 232.2 176.2 233.1 178.6 233.4 C 181.0 233.6 183.4 233.6 185.7 234.2 C 187.9 234.9 190.2 235.7 192.0 237.1 C 193.8 238.5 195.0 240.8 196.4 242.5 C 197.8 244.1 199.2 245.4 200.4 246.9 C 201.7 248.5 203.3 250.1 204.1 252.0 C 204.8 253.8 204.7 256.1 205.0 258.0 C 205.2 259.9 205.5 261.7 205.7 263.6 C 205.8 265.5 206.4 267.7 205.9 269.6 C 205.4 271.4 204.2 273.2 202.9 274.6 C 201.6 276.1 199.7 277.0 198.2 278.2 C 196.6 279.4 195.3 280.8 193.6 281.8 C 192.0 282.7 190.0 283.5 188.0 283.7 C 186.1 284.0 183.8 283.2 181.8 283.3 C 179.8 283.4 178.1 283.8 176.2 284.1 C 174.3 284.4 172.1 285.0 170.3 284.9 C 168.5 284.8 166.9 284.0 165.3 283.6 C 163.7 283.2 162.2 283.0 160.7 282.7 C 159.1 282.4 157.3 282.3 155.9 281.7 C 154.5 281.0 153.2 279.9 152.4 278.7 C 151.5 277.5 151.2 275.8 150.7 274.4 C 150.3 273.0 150.0 271.6 149.6 270.1 C 149.2 268.7 148.5 267.2 148.5 265.7 C 148.4 264.1 148.7 262.4 149.2 260.9 C 149.8 259.4 151.8 258.3 151.8 256.4 C 151.8 254.5 149.1 251.6 149.3 249.6 Z"/><path id="isle-d" d="M 428.9 230.3 C 429.8 229.6 430.2 228.5 430.9 227.6 C 431.6 226.8 432.3 226.1 433.1 225.5 C 434.0 224.8 434.9 224.1 435.9 223.6 C 437.0 223.1 438.1 222.7 439.3 222.4 C 440.5 222.2 441.7 222.2 443.0 222.2 C 444.2 222.3 445.4 222.5 446.6 222.7 C 447.9 222.9 449.1 223.2 450.3 223.6 C 451.5 224.0 452.7 224.5 453.8 225.2 C 454.9 225.9 456.0 226.8 456.8 227.9 C 457.6 229.0 458.2 230.5 458.5 231.9 C 458.9 233.2 458.9 234.7 458.9 236.0 C 458.8 237.3 458.6 238.5 458.4 239.7 C 458.1 240.8 457.7 242.0 457.2 243.0 C 456.6 244.0 456.0 245.0 455.2 245.8 C 454.4 246.6 453.4 247.4 452.4 247.9 C 451.4 248.5 450.2 248.9 449.2 249.3 C 448.1 249.6 446.9 249.9 445.8 250.1 C 444.7 250.4 443.6 250.6 442.5 250.8 C 441.4 250.9 440.2 251.1 439.1 251.1 C 438.0 251.0 436.8 250.9 435.8 250.6 C 434.7 250.3 433.7 249.9 432.9 249.4 C 432.0 248.9 431.2 248.3 430.5 247.8 C 429.8 247.2 429.3 246.6 428.7 245.9 C 428.2 245.3 427.7 244.6 427.3 243.9 C 426.9 243.2 426.5 242.5 426.2 241.8 C 425.9 241.1 425.6 240.3 425.5 239.5 C 425.3 238.7 425.1 237.9 425.1 237.1 C 425.0 236.2 425.1 235.4 425.2 234.5 C 425.3 233.7 425.2 232.7 425.8 232.0 C 426.4 231.3 428.1 231.0 428.9 230.3 Z"/><path id="isle-e" d="M 56.5 345.9 C 58.2 344.0 60.5 342.3 62.5 340.5 C 64.6 338.7 66.5 337.0 68.8 335.3 C 71.1 333.6 73.4 331.3 76.2 330.3 C 78.9 329.3 82.3 329.3 85.3 329.2 C 88.4 329.1 91.5 329.4 94.6 329.6 C 97.6 329.8 100.7 330.0 103.6 330.7 C 106.4 331.3 109.1 332.7 111.8 333.5 C 114.5 334.3 117.4 334.7 120.0 335.7 C 122.6 336.6 125.4 337.7 127.3 339.5 C 129.2 341.3 130.4 344.1 131.3 346.3 C 132.2 348.5 132.4 350.7 132.7 352.8 C 133.0 354.9 133.3 356.9 133.2 358.9 C 133.1 360.9 132.7 363.0 132.1 364.9 C 131.4 366.8 130.3 368.5 129.3 370.3 C 128.2 372.2 127.1 374.0 125.9 375.9 C 124.7 377.8 123.5 380.2 121.9 382.0 C 120.2 383.8 118.2 385.5 115.9 386.7 C 113.6 387.8 110.9 388.2 108.3 388.7 C 105.7 389.3 103.0 389.7 100.3 390.1 C 97.6 390.5 94.7 391.1 92.0 391.1 C 89.3 391.2 86.4 390.7 83.8 390.3 C 81.2 390.0 78.7 389.5 76.2 389.0 C 73.7 388.6 71.0 388.3 68.7 387.4 C 66.4 386.5 64.2 385.2 62.4 383.6 C 60.7 382.0 59.5 379.8 58.3 377.8 C 57.2 375.7 56.4 373.5 55.6 371.5 C 54.7 369.4 53.8 367.4 53.2 365.3 C 52.6 363.1 52.1 360.9 51.9 358.6 C 51.8 356.4 51.6 353.8 52.3 351.7 C 53.1 349.6 54.8 347.8 56.5 345.9 Z"/><path id="rock-1" d="M 231.3 112.0 C 231.0 111.3 231.4 110.5 231.5 109.8 C 231.7 109.1 232.0 108.4 232.4 107.9 C 232.8 107.3 233.3 106.8 233.8 106.3 C 234.4 105.9 235.0 105.6 235.7 105.4 C 236.4 105.1 237.2 105.0 238.0 105.0 C 238.8 105.0 239.6 105.2 240.3 105.4 C 240.9 105.7 241.6 106.0 242.1 106.5 C 242.6 106.9 243.0 107.4 243.4 108.0 C 243.7 108.6 243.9 109.2 244.0 109.9 C 244.1 110.6 244.1 111.3 244.0 112.0 C 243.9 112.7 243.8 113.4 243.5 113.9 C 243.3 114.5 243.0 115.0 242.7 115.5 C 242.3 115.9 241.9 116.3 241.4 116.6 C 241.0 116.9 240.5 117.2 239.9 117.3 C 239.3 117.5 238.6 117.6 238.0 117.6 C 237.4 117.6 236.7 117.5 236.1 117.3 C 235.5 117.2 235.0 116.9 234.6 116.6 C 234.1 116.2 233.8 115.8 233.5 115.4 C 233.2 114.9 233.2 114.4 232.9 113.8 C 232.5 113.3 231.5 112.7 231.3 112.0 Z"/><path id="rock-2" d="M 112.3 206.0 C 112.2 205.4 112.3 204.7 112.4 204.1 C 112.6 203.5 112.8 202.9 113.1 202.4 C 113.5 201.9 113.9 201.4 114.4 201.1 C 114.8 200.7 115.4 200.4 116.0 200.2 C 116.6 200.0 117.3 199.8 118.0 199.8 C 118.7 199.8 119.4 199.8 120.0 200.0 C 120.7 200.2 121.3 200.5 121.8 200.8 C 122.3 201.2 122.8 201.7 123.2 202.2 C 123.6 202.7 123.9 203.3 124.0 204.0 C 124.2 204.6 124.3 205.3 124.3 206.0 C 124.3 206.7 124.1 207.4 123.9 208.0 C 123.7 208.6 123.4 209.2 123.0 209.7 C 122.6 210.2 122.1 210.6 121.6 210.9 C 121.1 211.2 120.5 211.5 119.9 211.6 C 119.3 211.7 118.6 211.8 118.0 211.7 C 117.4 211.7 116.7 211.5 116.2 211.3 C 115.6 211.1 115.1 210.8 114.7 210.4 C 114.3 210.1 113.9 209.7 113.6 209.2 C 113.4 208.8 113.3 208.3 113.0 207.7 C 112.8 207.2 112.4 206.6 112.3 206.0 Z"/><path id="rock-3" d="M 447.0 418.0 C 447.1 417.4 447.2 416.8 447.3 416.4 C 447.5 415.9 447.8 415.4 448.1 415.1 C 448.4 414.7 448.7 414.4 449.1 414.1 C 449.5 413.9 450.0 413.7 450.4 413.6 C 450.9 413.5 451.5 413.4 452.0 413.4 C 452.5 413.4 453.1 413.4 453.6 413.6 C 454.1 413.7 454.5 413.9 454.9 414.1 C 455.3 414.4 455.6 414.7 455.9 415.1 C 456.2 415.4 456.5 415.9 456.6 416.4 C 456.8 416.9 456.9 417.5 456.9 418.0 C 456.9 418.5 456.8 419.1 456.7 419.6 C 456.5 420.1 456.3 420.6 456.0 421.0 C 455.7 421.4 455.4 421.7 455.0 422.0 C 454.6 422.3 454.1 422.5 453.6 422.6 C 453.1 422.8 452.5 422.8 452.0 422.8 C 451.5 422.9 450.9 422.8 450.4 422.7 C 449.8 422.6 449.4 422.4 448.9 422.1 C 448.5 421.9 448.1 421.5 447.8 421.1 C 447.4 420.7 447.1 420.3 446.9 419.8 C 446.8 419.2 446.9 418.6 447.0 418.0 Z"/><path id="rock-5" d="M 400.6 122.0 C 400.7 121.6 400.6 121.2 400.7 120.8 C 400.8 120.5 400.9 120.1 401.1 119.9 C 401.3 119.6 401.6 119.3 401.9 119.1 C 402.1 118.9 402.4 118.8 402.8 118.7 C 403.2 118.6 403.6 118.5 404.0 118.5 C 404.4 118.5 404.8 118.5 405.2 118.6 C 405.6 118.7 405.9 118.9 406.2 119.1 C 406.5 119.2 406.8 119.5 407.0 119.8 C 407.2 120.0 407.4 120.4 407.6 120.7 C 407.7 121.1 407.8 121.6 407.9 122.0 C 407.9 122.4 407.9 122.9 407.8 123.3 C 407.7 123.7 407.6 124.1 407.3 124.5 C 407.1 124.8 406.9 125.1 406.5 125.4 C 406.2 125.7 405.8 125.9 405.4 126.0 C 405.0 126.1 404.5 126.2 404.0 126.2 C 403.5 126.2 403.0 126.2 402.6 126.0 C 402.2 125.9 401.8 125.7 401.4 125.5 C 401.1 125.2 400.8 124.9 400.6 124.5 C 400.3 124.2 400.1 123.8 400.1 123.4 C 400.1 123.0 400.4 122.4 400.6 122.0 Z"/><path id="rock-6" d="M 174.4 330.0 C 174.4 329.6 174.3 329.1 174.4 328.8 C 174.5 328.4 174.7 328.0 174.8 327.7 C 175.0 327.3 175.3 327.0 175.6 326.8 C 175.9 326.5 176.3 326.3 176.7 326.1 C 177.1 326.0 177.6 325.9 178.0 325.9 C 178.5 325.8 178.9 325.9 179.4 326.0 C 179.8 326.1 180.2 326.3 180.6 326.5 C 180.9 326.7 181.3 327.1 181.5 327.4 C 181.8 327.8 182.0 328.2 182.1 328.6 C 182.2 329.0 182.3 329.5 182.3 330.0 C 182.3 330.5 182.2 331.0 182.0 331.4 C 181.9 331.8 181.7 332.2 181.4 332.5 C 181.2 332.9 180.9 333.2 180.5 333.4 C 180.2 333.6 179.8 333.8 179.3 333.9 C 178.9 334.0 178.4 334.1 178.0 334.1 C 177.6 334.0 177.1 334.0 176.7 333.9 C 176.3 333.7 175.9 333.5 175.5 333.3 C 175.2 333.1 174.9 332.8 174.7 332.5 C 174.4 332.1 174.1 331.8 174.1 331.3 C 174.0 330.9 174.3 330.4 174.4 330.0 Z"/><clipPath id="chart-clip"><rect x="24" y="24" width="592" height="472"/></clipPath></defs>
+      <rect class="water" x="24" y="24" width="592" height="472"/>
+      <g clip-path="url(#chart-clip)">
+        <g class="contour-dash"><use href="#mainland"/><use href="#isle-a"/><use href="#isle-b"/><use href="#isle-c"/><use href="#isle-d"/><use href="#isle-e"/></g>
+        <g class="contour-cover"><use href="#mainland"/><use href="#isle-a"/><use href="#isle-b"/><use href="#isle-c"/><use href="#isle-d"/><use href="#isle-e"/></g>
+        <g class="contour-line"><use href="#mainland"/><use href="#isle-a"/><use href="#isle-b"/><use href="#isle-c"/><use href="#isle-d"/><use href="#isle-e"/></g>
+        <g class="shallow"><use href="#mainland"/><use href="#isle-a"/><use href="#isle-b"/><use href="#isle-c"/><use href="#isle-d"/><use href="#isle-e"/></g>
+        <g class="shallow-rock"><use href="#rock-1"/><use href="#rock-2"/><use href="#rock-3"/><use href="#rock-5"/><use href="#rock-6"/></g>
+        <g class="land"><use href="#mainland"/><use href="#isle-a"/><use href="#isle-b"/><use href="#isle-c"/><use href="#isle-d"/><use href="#isle-e"/><use href="#rock-1"/><use href="#rock-2"/><use href="#rock-3"/><use href="#rock-5"/><use href="#rock-6"/></g>
+        <g aria-hidden="true"><text class="sounding" x="108" y="140" text-anchor="middle">64</text><text class="sounding" x="196" y="92" text-anchor="middle">58</text><text class="sounding" x="214" y="196" text-anchor="middle">41</text><text class="sounding" x="64" y="232" text-anchor="middle">52</text><text class="sounding" x="300" y="52" text-anchor="middle">61</text><text class="sounding" x="430" y="64" text-anchor="middle">55</text><text class="sounding" x="262" y="432" text-anchor="middle">33</text><text class="sounding" x="168" y="486" text-anchor="middle">47</text><text class="sounding" x="350" y="462" text-anchor="middle">28</text><text class="sounding" x="420" y="432" text-anchor="middle">19</text><text class="sounding" x="448" y="352" text-anchor="middle">12</text><text class="sounding" x="118" y="452" text-anchor="middle">39</text>
+          <text class="sea-label" x="46" y="74">Open sea</text>
+          <text class="sea-label" x="40" y="298">Outer approach</text>
+          <text class="sea-label" x="300" y="430" transform="rotate(-8 300 430)">Inner fairway</text>
+          <text class="land-label" x="584" y="268" text-anchor="middle">Berth B2</text>
+        </g>
+        <g class="compass" aria-hidden="true"><circle cx="236" cy="466" r="24"/><circle cx="236" cy="466" r="17"/><line x1="236.0" y1="447.0" x2="236.0" y2="442.0"/><line x1="239.7" y1="444.8" x2="240.2" y2="442.4"/><line x1="243.4" y1="445.8" x2="244.2" y2="443.4"/><line x1="246.8" y1="447.4" x2="248.0" y2="445.2"/><line x1="249.8" y1="449.5" x2="251.4" y2="447.6"/><line x1="252.5" y1="452.2" x2="254.4" y2="450.6"/><line x1="254.6" y1="455.2" x2="256.8" y2="454.0"/><line x1="256.2" y1="458.6" x2="258.6" y2="457.8"/><line x1="257.2" y1="462.3" x2="259.6" y2="461.8"/><line x1="255.0" y1="466.0" x2="260.0" y2="466.0"/><line x1="257.2" y1="469.7" x2="259.6" y2="470.2"/><line x1="256.2" y1="473.4" x2="258.6" y2="474.2"/><line x1="254.6" y1="476.8" x2="256.8" y2="478.0"/><line x1="252.5" y1="479.8" x2="254.4" y2="481.4"/><line x1="249.8" y1="482.5" x2="251.4" y2="484.4"/><line x1="246.8" y1="484.6" x2="248.0" y2="486.8"/><line x1="243.4" y1="486.2" x2="244.2" y2="488.6"/><line x1="239.7" y1="487.2" x2="240.2" y2="489.6"/><line x1="236.0" y1="485.0" x2="236.0" y2="490.0"/><line x1="232.3" y1="487.2" x2="231.8" y2="489.6"/><line x1="228.6" y1="486.2" x2="227.8" y2="488.6"/><line x1="225.2" y1="484.6" x2="224.0" y2="486.8"/><line x1="222.2" y1="482.5" x2="220.6" y2="484.4"/><line x1="219.5" y1="479.8" x2="217.6" y2="481.4"/><line x1="217.4" y1="476.8" x2="215.2" y2="478.0"/><line x1="215.8" y1="473.4" x2="213.4" y2="474.2"/><line x1="214.8" y1="469.7" x2="212.4" y2="470.2"/><line x1="217.0" y1="466.0" x2="212.0" y2="466.0"/><line x1="214.8" y1="462.3" x2="212.4" y2="461.8"/><line x1="215.8" y1="458.6" x2="213.4" y2="457.8"/><line x1="217.4" y1="455.2" x2="215.2" y2="454.0"/><line x1="219.5" y1="452.2" x2="217.6" y2="450.6"/><line x1="222.2" y1="449.5" x2="220.6" y2="447.6"/><line x1="225.2" y1="447.4" x2="224.0" y2="445.2"/><line x1="228.6" y1="445.8" x2="227.8" y2="443.4"/><line x1="232.3" y1="444.8" x2="231.8" y2="442.4"/><path d="M 236 445 L 240 466 L 236 463 L 232 466 Z"/><text x="236" y="437" text-anchor="middle">N</text></g>
+        <path id="route" class="track" d="M -12 500 C 120 430 190 410 220 350 C 245 300 250 262 300 245 C 350 228 400 268 440 292 C 472 306 530 300 546 326"/>
+        <line class="quay" x1="556" y1="311" x2="559" y2="343"/>
+        <circle class="berth-ring" cx="546" cy="326" r="9"/>
+        <circle class="berth-dot" cx="546" cy="326" r="2.5"/>
+        <g id="pings"></g>
+        <path id="ship" class="ship" d="M 10 0 L 3 -4.5 L -9 -4.5 L -9 4.5 L 3 4.5 Z" transform="translate(-12 500)"/>
+      </g>
+      <g aria-hidden="true">
+        <rect class="neat-outer" x="15" y="15" width="610" height="490"/>
+        <rect class="neat-inner" x="24" y="24" width="592" height="472"/>
+        <rect class="neat-tick" x="24.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="24.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="61.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="61.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="98.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="98.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="135.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="135.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="172.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="172.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="209.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="209.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="246.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="246.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="283.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="283.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="320.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="320.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="357.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="357.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="394.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="394.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="431.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="431.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="468.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="468.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="505.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="505.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="542.0" y="15" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="542.0" y="500.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="579.0" y="19.5" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="579.0" y="496" width="37.0" height="4.5"/>
+        <rect class="neat-tick" x="15" y="24.0" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="24.0" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="60.3" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="60.3" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="96.6" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="96.6" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="132.9" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="132.9" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="169.2" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="169.2" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="205.5" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="205.5" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="241.8" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="241.8" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="278.2" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="278.2" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="314.5" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="314.5" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="350.8" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="350.8" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="387.1" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="387.1" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="19.5" y="423.4" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="616" y="423.4" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="459.7" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="620.5" y="459.7" width="4.5" height="36.3"/>
+        <rect class="neat-tick" x="15" y="15" width="9" height="9"/>
+        <rect class="neat-tick" x="616" y="15" width="9" height="9"/>
+        <rect class="neat-tick" x="15" y="496" width="9" height="9"/>
+        <rect class="neat-tick" x="616" y="496" width="9" height="9"/>
+      </g>
+    </svg>
+      <div class="readout" data-state="approach" aria-hidden="true">
+        <p class="readout-title">Approach in progress</p>
+        <dl>
+          <dt>Distance to berth</dt><dd data-r="dist">6.4 nm</dd>
+          <dt>Speed over ground</dt><dd data-r="sog">11.5 kn</dd>
+          <dt>Predicted arrival</dt><dd data-r="eta">in 46 min</dd>
+        </dl>
+      </div>
+      <button class="replay" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+        <span>Replay the approach</span>
+      </button>
+    </div>
+    <figcaption>What my project works with: position reports every few seconds, a known berth, and an arrival time that updates as the ship comes in. The chart is schematic and the numbers are illustrative.</figcaption>
+  </figure>
+</section>
+
+<section class="section project" id="project" aria-labelledby="project-title">
+  <div class="wrap">
+    <div class="project-head">
+      <div>
+        <h2 id="project-title">Ship arrival prediction and berth planning</h2>
+        <p class="lede">A system I built on my own, from raw data to running services. It predicts when a ship will reach its berth from AIS position reports, then gives the ship a berth or a place in the queue, a requested arrival time, and a speed that avoids waiting at anchor.</p>
+        <ul class="chips" aria-label="Technologies used">
+          <li>Python</li><li>XGBoost</li><li>PyTorch</li><li>FastAPI</li><li>Java 21</li><li>Spring Boot</li><li>MySQL</li><li>DCSA Port Call 2.0</li>
+        </ul>
+      </div>
+      <div class="why">
+        <p>Ships spend <strong>up to 9% of their time waiting at anchorage</strong>, according to <a href="https://www.imo.org/en/MediaCentre/Pages/WhatsNew-1502.aspx">IMO</a>. A study for IMO estimated that Just In Time arrival could cut container ship fuel use and CO<sub>2</sub> by <strong>about 14% per voyage</strong>. That needs a port that knows when ships will arrive and can tell them when to come in.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/Rohit-v-raj/ship-eta-berth-scheduler">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+            Read the code
+          </a>
+          <a class="btn" href="files/Rohit_Varadaraj_Ship_ETA_Technical_Note.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            Technical note (PDF)
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3>How it works, from raw reports to a berth plan</h3>
+    </div>
+    <ol class="waypoints">
+      <li><h3>Clean the data</h3><p>30 million AIS reports, with hidden missing values such as a speed of 102.3 knots turned into gaps.</p></li>
+      <li><h3>Find real arrivals</h3><p>Mooring events reached after real travel become 688 labelled approach voyages.</p></li>
+      <li><h3>Train and test fairly</h3><p>XGBoost with a distance over speed prior, tested on 36 ships it never saw in training.</p></li>
+      <li><h3>Serve predictions</h3><p>A Python FastAPI service rebuilds the features from a ship's position and returns an ETA.</p></li>
+      <li><h3>Plan the berth</h3><p>A Spring Boot API on MySQL assigns a berth or queue place, a requested arrival and speed advice.</p></li>
+      <li><h3>Agree the time</h3><p>The ship accepts, rejects or omits the call, and every time is exchanged as a DCSA Port Call event.</p></li>
+    </ol>
+
+    <div class="subhead">
+      <h3>Results on ships the model never saw</h3>
+      <p>All numbers are mean absolute error in minutes on 36 held out vessels. Lower is better.</p>
+    </div>
+    <div class="results">
+      <figure class="chart" aria-labelledby="c1-title">
+        <h3 id="c1-title">XGBoost against a distance over speed estimate</h3>
+        <p class="chart-sub">Average error, in minutes</p>
+        <div class="bars">
+          <div>
+            <p class="bar-group-title">All test points</p>
+            <div class="bar-row" title="Distance over speed estimate, all test points: 161.5 minutes"><span class="bar-label">Distance over speed</span><span class="bar-track"><span class="bar base" style="width: calc(161.5 / 175 * 82%)"></span><span class="bar-value">161.5 min</span></span></div>
+            <div class="bar-row" title="XGBoost, all test points: 69.0 minutes, 57% lower"><span class="bar-label">XGBoost</span><span class="bar-track"><span class="bar model" style="width: calc(69 / 175 * 82%)"></span><span class="bar-value">69.0 min, 57% lower</span></span></div>
+          </div>
+          <div>
+            <p class="bar-group-title">Moving ships only</p>
+            <div class="bar-row" title="Distance over speed estimate, moving ships only: 82.3 minutes"><span class="bar-label">Distance over speed</span><span class="bar-track"><span class="bar base" style="width: calc(82.3 / 175 * 82%)"></span><span class="bar-value">82.3 min</span></span></div>
+            <div class="bar-row" title="XGBoost, moving ships only: 67.1 minutes, 18% lower"><span class="bar-label">XGBoost</span><span class="bar-track"><span class="bar model" style="width: calc(67.1 / 175 * 82%)"></span><span class="bar-value">67.1 min, 18% lower</span></span></div>
+          </div>
+        </div>
+        <p class="chart-note">The simple estimate fails on slow or stopped ships, about a quarter of the data, so the moving ships comparison is the fairer one. A deep sequence model (Bi-GRU) scored 74.9 minutes against XGBoost's 68.4 on the same points, so the simpler model shipped.</p>
+      </figure>
+
+      <figure class="chart" aria-labelledby="c2-title">
+        <h3 id="c2-title">Error grows with time to arrival</h3>
+        <p class="chart-sub">XGBoost average error, in minutes</p>
+        <div class="cols" role="img" aria-label="Average error by time remaining: under 1 hour, 45 minutes; 1 to 2 hours, 49 minutes; 2 to 4 hours, 58 minutes; over 4 hours, 112 minutes.">
+          <div class="col" title="Under 1 hour to arrival: about 45 minutes"><span class="bar-value">45</span><span class="col-bar" style="height: calc(45 / 120 * 100% - 1.6rem)"></span></div>
+          <div class="col" title="1 to 2 hours to arrival: about 49 minutes"><span class="bar-value">49</span><span class="col-bar" style="height: calc(49 / 120 * 100% - 1.6rem)"></span></div>
+          <div class="col" title="2 to 4 hours to arrival: about 58 minutes"><span class="bar-value">58</span><span class="col-bar" style="height: calc(58 / 120 * 100% - 1.6rem)"></span></div>
+          <div class="col" title="Over 4 hours to arrival: about 112 minutes"><span class="bar-value">112</span><span class="col-bar" style="height: calc(112 / 120 * 100% - 1.6rem)"></span></div>
+        </div>
+        <div class="col-labels" aria-hidden="true"><span>Under 1 h</span><span>1 to 2 h</span><span>2 to 4 h</span><span>Over 4 h</span></div>
+        <p class="axis-title" aria-hidden="true">Time remaining until arrival</p>
+        <p class="chart-note">Close in, predictions are tight. Beyond four hours, a berth plan needs wide buffers.</p>
+      </figure>
+    </div>
+
+    <div class="subhead">
+      <h3>Decisions that made the difference</h3>
+    </div>
+    <ul class="decisions">
+      <li><h3>Split by ship, not by row</h3><p>Reports seconds apart are near copies, so a random split leaks answers into the test set. I split by ship, and found the same leak in a 2024 journal study's evaluation.</p></li>
+      <li><h3>Tested what the papers recommended</h3><p>A Bi-GRU, vessel length and time of day features all came from published work. Each was measured on held out ships and dropped when it did not help.</p></li>
+      <li><h3>Built in Just In Time arrival</h3><p>A queued ship is told the speed that brings it in when its berth is free, never below an economical speed for its type, instead of racing in to wait.</p></li>
+      <li><h3>Fixed a silent bug between services</h3><p>Java's HTTP client tried an HTTP/2 upgrade that the Python server rejected, dropping request bodies without an error. I traced it in the server logs and forced HTTP/1.1.</p></li>
+      <li><h3>Let the database enforce the rules</h3><p>Unique indexes allow one open allocation per berth and one open visit per ship, so two requests at once cannot double book a berth. 54 automated tests back it.</p></li>
+      <li><h3>Followed industry standards</h3><p>Times follow IMO's estimated, requested, planned and actual types and are exchanged as DCSA Port Call 2.0 events. The alignment is partial and not certified.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="experience" aria-labelledby="experience-title">
+  <div class="wrap split">
+    <h2 id="experience-title">Experience</h2>
+    <div class="timeline">
+      <article class="role">
+        <div class="role-head">
+          <h3>WiseTech Global, Bengaluru</h3>
+          <p class="role-dates">Aug 2023 to May 2026</p>
+        </div>
+        <div class="role-titles">
+          <p><strong>Software Engineer</strong>, Jul 2025 to May 2026</p>
+          <p><strong>Associate Software Engineer</strong>, Aug 2023 to Jun 2025. I joined Blume Global, which WiseTech acquired in 2024.</p>
+        </div>
+        <ul class="highlights">
+          <li>Built a <strong>zero configuration observability framework for 145+ Spring Boot microservices</strong>. It discovers MySQL, MongoDB, Redis, Kafka and Quartz at runtime and exposes 30+ metrics and 8 health indicators per service.</li>
+          <li>Unified 8 fragmented CI/CD build plugins into central REST based services for coverage, deployment and vulnerability workflows, <strong>cutting CI complexity by 67%</strong>.</li>
+          <li>Automated deployments and observability on Kubernetes, Prometheus, Elasticsearch, Kibana and Grafana, <strong>improving production issue detection time by 60%+</strong>.</li>
+          <li>Led the migration from Maven to Gradle and designed dual registry container publishing for the move to OpenShift.</li>
+          <li>Brought Diff Coverage gates and real time Grafana deployment dashboards into the build pipelines, and introduced the Spock testing framework.</li>
+        </ul>
+      </article>
+      <article class="role">
+        <div class="role-head">
+          <h3>Vizuara, remote</h3>
+          <p class="role-dates">Jun 2022 to Aug 2022</p>
+        </div>
+        <div class="role-titles">
+          <p><strong>Game Developer Intern</strong></p>
+        </div>
+        <ul class="highlights">
+          <li>Built 4+ interactive scientific simulations in Unity 3D and added cross platform support to 10+ projects.</li>
+          <li>Improved application performance by 80% through playtesting, profiling and fixing UI bottlenecks.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section band" id="education" aria-labelledby="education-title">
+  <div class="wrap split">
+    <h2 id="education-title">Education and other work</h2>
+    <div>
+      <div class="pair">
+        <div>
+          <h3>Indian Institute of Technology Madras</h3>
+          <p class="meta">B.Tech, Naval Architecture and Ocean Engineering, 2019 to 2023</p>
+          <p>CGPA 8.14 out of 10. Coursework across data structures, computer networks, probability and statistics, ship hydrodynamics and port operations.</p>
+        </div>
+        <div>
+          <h3>Instituto Superior Técnico, Lisbon</h3>
+          <p class="meta">Semester exchange, Sep 2021 to Feb 2022</p>
+          <p>Selected as one of the top 3 of 60+ applicants. Studied port operations, maritime transportation systems, shipyard management and maritime infrastructure planning.</p>
+        </div>
+      </div>
+      <h3 class="pair-title stack-gap">Other projects</h3>
+      <div class="pair">
+        <div>
+          <h3>Container terminal planning</h3>
+          <p class="meta">Port operations and capacity analysis</p>
+          <p>Planned and dimensioned a container terminal: berth sizing, yard capacity, rail links and infrastructure, using terminal productivity metrics and queueing theory.</p>
+        </div>
+        <div>
+          <h3>Multithreaded game server</h3>
+          <p class="meta">C++, TCP sockets, threads</p>
+          <p>A central server handling 100+ concurrent Tic Tac Toe sessions over TCP, with idle session handling and central logging.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="skills" aria-labelledby="skills-title">
+  <div class="wrap split">
+    <h2 id="skills-title">Skills</h2>
+    <dl class="skills">
+      <dt>Languages</dt><dd>Java, Python, SQL, C++, Groovy, C#</dd>
+      <dt>Backend and platform</dt><dd>Spring Boot, REST APIs, distributed systems, Kubernetes, Docker, OpenShift, Kafka, Redis, MySQL, Elasticsearch, React</dd>
+      <dt>Observability</dt><dd>Prometheus, Grafana, Kibana</dd>
+      <dt>Data and ML</dt><dd>XGBoost, PyTorch, pandas, FastAPI</dd>
+      <dt>AI tools</dt><dd>Spring AI, CrewAI, Claude Code, Cursor</dd>
+      <dt>Maritime</dt><dd>AIS data, berth planning, port operations, Just In Time arrival, DCSA Port Call, IMO FAL.5/Circ.52</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="section contact" id="contact" aria-labelledby="contact-title">
+  <div class="wrap">
+    <h2 id="contact-title">Get in touch</h2>
+    <p>I am available now for software engineering roles, especially where software meets ports, shipping and decarbonisation. I am based in Bengaluru and open to relocating.</p>
+    <a class="email" href="mailto:rohitvraj11@gmail.com">rohitvraj11@gmail.com</a>
+    <ul class="profile-links">
+      <li><a href="https://www.linkedin.com/in/rohit-v-raj/">LinkedIn</a></li>
+      <li><a href="https://github.com/Rohit-v-raj">GitHub</a></li>
+      <li><a href="files/Rohit_Varadaraj_Ship_ETA_Technical_Note.pdf">Technical note (PDF)</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>© 2026 Rohit Varadaraj</p>
+    <p>Set in Schibsted Grotesk and Newsreader. The harbour chart is schematic.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* Night chart toggle */
+  var root = document.documentElement;
+  var toggle = document.querySelector(".theme-toggle");
+  var label = toggle.querySelector(".theme-label");
+  function isDark() {
+    var t = root.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function sync() {
+    var dark = isDark();
+    toggle.setAttribute("aria-pressed", dark ? "true" : "false");
+    label.textContent = dark ? "Day chart" : "Night chart";
+  }
+  toggle.addEventListener("click", function () {
+    var next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    sync();
+  });
+  sync();
+
+  /* The approach: one orchestrated animation on load, replayable on request */
+  var route = document.getElementById("route");
+  var ship = document.getElementById("ship");
+  var pings = document.getElementById("pings");
+  var readout = document.querySelector(".readout");
+  var replay = document.querySelector(".replay");
+  if (!route || !ship || !route.getTotalLength) return;
+
+  var L = route.getTotalLength();
+  var NM = 6.4;            /* illustrative route length in nautical miles */
+  var DURATION = 13000;    /* real milliseconds for the whole approach */
+  var N = 400;
+  function sog(p) {
+    if (p < 0.6) return 11.5;
+    if (p < 0.95) return 11.5 - (p - 0.6) / 0.35 * 8.5;
+    return 3 - (p - 0.95) / 0.05 * 1;
+  }
+  var rem = new Float64Array(N + 1);
+  for (var i = N - 1; i >= 0; i--) rem[i] = rem[i + 1] + (NM / N) / sog((i + 0.5) / N) * 60;
+  var TOTAL = rem[0];
+  function progressAt(elapsedMin) {
+    var target = TOTAL - elapsedMin;
+    if (target <= 0) return 1;
+    for (var k = 0; k < N; k++) {
+      if (rem[k + 1] <= target) {
+        var f = (rem[k] - target) / (rem[k] - rem[k + 1]);
+        return (k + f) / N;
+      }
+    }
+    return 1;
+  }
+  function remainingAt(p) {
+    var x = Math.min(N, Math.max(0, p * N)), k = Math.floor(x), f = x - k;
+    return k >= N ? 0 : rem[k] + (rem[k + 1] - rem[k]) * f;
+  }
+  var dEl = readout.querySelector('[data-r="dist"]');
+  var sEl = readout.querySelector('[data-r="sog"]');
+  var eEl = readout.querySelector('[data-r="eta"]');
+  var tEl = readout.querySelector(".readout-title");
+  function place(p) {
+    var a = route.getPointAtLength(p * L);
+    var b = route.getPointAtLength(Math.min(L, p * L + 2));
+    var c = p * L + 2 > L ? route.getPointAtLength(Math.max(0, L - 2)) : a;
+    var dx = (p * L + 2 > L) ? a.x - c.x : b.x - a.x;
+    var dy = (p * L + 2 > L) ? a.y - c.y : b.y - a.y;
+    var ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    ship.setAttribute("transform", "translate(" + a.x.toFixed(1) + " " + a.y.toFixed(1) + ") rotate(" + ang.toFixed(1) + ")");
+    return a;
+  }
+  function show(p) {
+    if (p >= 1) {
+      readout.setAttribute("data-state", "moored");
+      tEl.textContent = "Moored at berth B2";
+      dEl.textContent = "0.0 nm";
+      sEl.textContent = "0.0 kn";
+      eEl.textContent = "arrived";
+      return;
+    }
+    readout.setAttribute("data-state", "approach");
+    tEl.textContent = "Approach in progress";
+    dEl.textContent = ((1 - p) * NM).toFixed(1) + " nm";
+    sEl.textContent = sog(p).toFixed(1) + " kn";
+    eEl.textContent = "in " + Math.max(1, Math.ceil(remainingAt(p))) + " min";
+  }
+  var NS = "http://www.w3.org/2000/svg";
+  function dropPing(pt) {
+    var c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", pt.x.toFixed(1));
+    c.setAttribute("cy", pt.y.toFixed(1));
+    c.setAttribute("r", "2.3");
+    c.setAttribute("class", "ping");
+    pings.appendChild(c);
+  }
+  function drawStatic(p) {
+    while (pings.firstChild) pings.removeChild(pings.firstChild);
+    var step = 1.5, e = 0, end = TOTAL - remainingAt(p);
+    while (e < end) { dropPing(route.getPointAtLength(progressAt(e) * L)); e += step; }
+    place(p); show(p);
+  }
+  var raf = null;
+  function run() {
+    if (raf) cancelAnimationFrame(raf);
+    while (pings.firstChild) pings.removeChild(pings.firstChild);
+    replay.hidden = true;
+    var start = null, lastPing = -Infinity;
+    function frame(ts) {
+      if (start === null) start = ts;
+      var elapsedMin = Math.min(TOTAL, (ts - start) / DURATION * TOTAL);
+      var p = progressAt(elapsedMin);
+      var pt = place(p);
+      if (elapsedMin - lastPing >= 1.5 && p < 1) { dropPing(pt); lastPing = elapsedMin; }
+      show(p);
+      if (p < 1) { raf = requestAnimationFrame(frame); }
+      else { raf = null; replay.hidden = false; }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  replay.addEventListener("click", run);
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) {
+    drawStatic(0.62);
+    replay.querySelector("span").textContent = "Play the approach";
+    replay.hidden = false;
+  } else {
+    place(0); show(0);
+    var go = function () { setTimeout(run, 500); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
+  }
+})();
+</script>
+</body>
+</html>
